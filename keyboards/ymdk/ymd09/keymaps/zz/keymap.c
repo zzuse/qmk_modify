@@ -19,38 +19,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // feature 1: custom command using send string
 enum custom_keycodes {
-    GIT_STASH = SAFE_RANGE,
-    GIT_STASH_POP,
+    CONDA_ACTIVATE= SAFE_RANGE,
+    CONDA_DEACTIVATE,
     GIT_COMMIT,
-    COPY_PASTE,
+    COPY,
+    PASTE,
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef CONSOLE_ENABLE
     uprintf("KL: kc: 0x%04X, col: %u, row: %u, pressed: %b, time: %u, interrupt: %b, count: %u\n", keycode, record->event.key.col, record->event.key.row, record->event.pressed, record->event.time, record->tap.interrupted, record->tap.count);
-    uprintf("rgblight: mode: %u, hue: %u, sat: %u, val: %u\n", rgblight_get_mode(), rgblight_get_hue(), rgblight_get_sat(), rgblight_get_val());
+    uprintf("rgblight: mode: %u, hue: %u, sat: %u, val: %u, speed: %u\n", rgblight_get_mode(), rgblight_get_hue(), rgblight_get_sat(), rgblight_get_val(), rgblight_get_speed());
 #endif
     switch (keycode) {
-        case GIT_STASH:
+        case CONDA_ACTIVATE:
             if (record->event.pressed) {
-                SEND_STRING("aa stash\n");
+                SEND_STRING("conda activate cling\n");
             }
             break;
-        case GIT_STASH_POP:
+        case CONDA_DEACTIVATE:
             if (record->event.pressed) {
-                SEND_STRING("aa stash pop\n");
+                SEND_STRING("conda deactivate\n");
             }
             break;
         case GIT_COMMIT:
             if (record->event.pressed) {
-                SEND_STRING("aa add -A && aa commit -a\n");
+                SEND_STRING("git commit -a\n");
             }
             break;
-        case COPY_PASTE:
+        case COPY:
             if (record->event.pressed) {
-                tap_code16(C(KC_C));
-            } else {
-                tap_code16(C(KC_V));
+                tap_code16(G(KC_C));
+            }
+            break;
+        case PASTE:
+            if (record->event.pressed) {
+                tap_code16(G(KC_V));
             }
             break;
     }
@@ -186,7 +190,7 @@ enum layer_names {
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-/*
+/* tap
  *            ___________________
  *           /TD(0)/ W   /  E  /
  *          /-----/-----/-----/
@@ -198,19 +202,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [WASD_LAYER] = LAYOUT(        TD(TAB_1),   KC_W,          KC_E,
                                      KC_A,   KC_S,          KC_D,
                                   KC_LSFT,   TD(QUO_LAYER), KC_SPACE),
-/*
+/* hold
  *            ___________________
- *           /TD(0)/ W   /  E  /
+ *           /CON_A/CON_D/SHIFT/
  *          /-----/-----/-----/
- *         / A   /  S  /  D  /
+ *         /RGBTg/RGBM+/Brig+/
  *        /-----/-----/-----/
- *       / LSFT/TD(1)/SPACE/
+ *       / COPY/TD(1)/PASTE/
  *      -------------------
  */
-  [FUNC_LAYER] = LAYOUT(GIT_STASH, GIT_STASH_POP, KC_LSFT,
-                             KC_DOT, LT(1, KC_SPACE), LCTL(KC_F6),
-                             COPY_PASTE, TD(QUO_LAYER), LCTL(KC_F3)),
-/*
+  [FUNC_LAYER] = LAYOUT(CONDA_ACTIVATE,          RGB_SPI, KC_LSFT,
+                               RGB_TOG,          RGB_MOD, RGB_VAI,
+                                  COPY,    TD(QUO_LAYER), PASTE),
+/* double tap
  *            ___________________
  *           /TD(0)/ I   /  P  /
  *          /-----/-----/-----/
@@ -222,7 +226,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [VIM_LAYER] = LAYOUT(    TD(TAB_1),   KC_I,          KC_P,
                            TD(VIM_J_H), KC_K,          KC_L,
                              KC_N,      TD(QUO_LAYER), KC_SPACE),
-/*
+/* triple tap
  *            ___________________
  *           /  1  / X   /  4  /
  *          /-----/-----/-----/
@@ -242,7 +246,6 @@ void keyboard_post_init_user(void) {
     debug_enable=true;
     debug_matrix=true;
     rgblight_enable_noeeprom();
-    rgblight_sethsv_noeeprom(HSV_CYAN);
 }
 
 // below is tap dance callback methods
