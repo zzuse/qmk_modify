@@ -1,0 +1,163 @@
+# Junk files
+*.bak
+*.swp
+*~
+.DS_Store
+._*
+
+# Merge files
+*.orig
+*.rej
+
+# Build artifacts
+.clang_complete
+.build/
+*.elf
+*.log
+*.lss
+*.lst
+*.map
+*.o
+*.stackdump
+*.sym
+
+# QMK-specific
+api_data/v1
+quantum/version.h
+*.bin
+*.eep
+*.hex
+*.qmk
+*.uf2
+
+
+keyboards/[a-v|x|z]**
+keyboards/[0-9]**
+keyboards/w1_at/
+keyboards/waldo/
+keyboards/walletburner/
+keyboards/waterfowl/
+keyboards/wavtype/
+keyboards/weirdo/
+keyboards/wekey/
+keyboards/westfoxtrot/
+keyboards/westm/
+keyboards/whale/
+keyboards/wilba_tech/
+keyboards/winkeyless/
+keyboards/winkeys/
+keyboards/wolf/
+keyboards/wolfmarkclub/
+keyboards/woodkeys/
+keyboards/work_louder/
+keyboards/wren/
+keyboards/wsk/
+keyboards/wuque/
+keyboards/yampad/
+keyboards/yandrstudio/
+keyboards/yanghu/
+keyboards/yatara/
+keyboards/ydkb/
+keyboards/yeehaw/
+keyboards/yiancardesigns/
+keyboards/ymdk/bface/
+keyboards/ymdk/id75/
+keyboards/ymdk/melody96/
+keyboards/ymdk/np21/
+keyboards/ymdk/np24/
+keyboards/ymdk/sp64/
+keyboards/ymdk/wings/
+keyboards/ymdk/wingshs/
+keyboards/ymdk/yd60mq/
+keyboards/ymdk/ym68/
+keyboards/ymdk/ymd21/
+keyboards/ymdk/ymd40/
+keyboards/ymdk/ymd67/
+keyboards/ymdk/ymd75/
+keyboards/ymdk/ymd96/
+keyboards/yncognito/
+keyboards/yoichiro/
+keyboards/yosino58/
+keyboards/yugo_m/
+keyboards/yushakobo/
+keyboards/yynmt/
+# DD config at wrong location
+# /keyboards/**/keymaps/*/info.json
+
+# Old-style QMK Makefiles
+# /keyboards/**/Makefile
+
+# kbfirmware....
+/keyboards/**/kb.h
+/keyboards/**/kb.c
+
+# Eclipse/PyCharm/Other IDE Settings
+*.iml
+.browse.VC.db*
+.cproject
+.idea
+.idea/
+.project
+.settings/
+.vagrant/
+
+# ?
+.dep
+.history/
+build/
+cmake-build-debug
+CMakeLists.txt
+*.pdf
+
+# Let these ones be user specific, since we have so many different configurations
+*.code-workspace
+.stfolder
+.tags
+.vscode/c_cpp_properties.json
+.vscode/ipch/
+.vscode/last.sql
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/temp.sql
+tags
+
+# Ignore image/font files
+*.bmp
+*.wbmp
+*.gif
+*.jpg
+*.jpeg
+*.png
+*.apng
+*.mng
+*.svg
+*.webp
+*.webm
+*.avi
+*.mp4
+*.mpeg
+*.ttf
+*.otf
+
+# Things Travis sees
+/.vs
+id_rsa_*
+secrets.tar
+
+# Python things
+__pycache__
+.python-version
+
+# Prerequisites for updating ChibiOS
+/util/fmpp*
+
+# Allow to exist but don't include it in the repo
+user_song_list.h
+
+# clangd
+compile_commands.json
+.clangd/
+.cache/
+
+# VIA(L) json files that don't belong in QMK repo
+via*.json
