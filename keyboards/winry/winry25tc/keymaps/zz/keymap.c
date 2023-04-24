@@ -74,25 +74,28 @@ typedef enum {
     TD_TRIPLE_HOLD
 } td_state_t;
 
+// for ACTION_TAP_DANCE_FN_ADVANCED
 typedef struct {
     bool is_press_action;
     td_state_t state;
 } td_tap_t;
 
-enum {
-    TAB_1,
-    QUO_LAYER,
-    VIM_J_H,
-    SOME_OTHER_DANCE,
-};
+// for ACTION_TAP_DANCE_TAP_HOLD
+typedef struct {
+    uint16_t tap;
+    uint16_t hold;
+    td_state_t state;
+} tap_dance_tap_hold_t;
 
 td_state_t cur_dance(tap_dance_state_t *state);
 void x_finished(tap_dance_state_t *state, void *user_data);
 void x_reset(tap_dance_state_t *state, void *user_data);
 void ql_finished(tap_dance_state_t *state, void *user_data);
 void ql_reset(tap_dance_state_t *state, void *user_data);
-void j_finished(tap_dance_state_t *state, void *user_data);
-void j_reset(tap_dance_state_t *state, void *user_data);
+void dl_finished(tap_dance_state_t *state, void *user_data);
+void dl_reset(tap_dance_state_t *state, void *user_data);
+void tap_hold_finished(tap_dance_state_t *state, void *user_data);
+void tap_hold_reset(tap_dance_state_t *state, void *user_data);
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if(state->count == 1) {
@@ -119,15 +122,39 @@ static td_tap_t ql_tap_state = {
     .state = TD_NONE
 };
 
-static td_tap_t j_tap_state = {
+static td_tap_t dl_tap_state = {
     .is_press_action = true,
     .state = TD_NONE
 };
 
+enum {
+    TAB_1,
+    QUO_LAYER,
+    V_B,
+    F1_2,
+    F2_3,
+    F4_4,
+    F5_5,
+    HOME_END,
+    T_COLON,
+    G_QUOTA,
+    SOME_OTHER_DANCE,
+};
+
+#define ACTION_TAP_DANCE_TAP_HOLD(tap, hold) \
+    { .fn = {NULL, tap_hold_finished, tap_hold_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, 0}), }
+
 tap_dance_action_t tap_dance_actions[] = {
     [TAB_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
     [QUO_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
-    [VIM_J_H]   = ACTION_TAP_DANCE_FN_ADVANCED(NULL, j_finished, j_reset),
+    [V_B]       = ACTION_TAP_DANCE_TAP_HOLD(KC_B, KC_V),
+    [F1_2]      = ACTION_TAP_DANCE_TAP_HOLD(KC_2, KC_F1),
+    [F2_3]      = ACTION_TAP_DANCE_TAP_HOLD(KC_3, KC_F2),
+    [F4_4]      = ACTION_TAP_DANCE_TAP_HOLD(KC_4, KC_F4),
+    [HOME_END]  = ACTION_TAP_DANCE_TAP_HOLD(KC_HOME, KC_END),
+    [T_COLON]   = ACTION_TAP_DANCE_TAP_HOLD(KC_T, KC_SCLN),
+    [G_QUOTA]   = ACTION_TAP_DANCE_TAP_HOLD(KC_G, KC_QUOT),
+    [F5_5]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dl_finished, dl_reset),
 };
 
 // feature 3: key override
@@ -158,50 +185,54 @@ enum layer_names {
     WASD_LAYER,
     FUNC_LAYER,
     MUSIC_LAYER,
-    VIM_LAYER,
+    GAME_LAYER,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* tap
- *            _______________________________
- *           /1/TAB/  2  /  3  /4/F4 /  5  /
+ *esc/gra/caps______________________________
+ *   `------>/1/TAB/ F1_2/ F2_3/F4_4 /F5_5 /
  *          /-----/-----/-----/-----/-----/
- *         /  Q  /  W  /  E  /  R  /  T  /
+ *         /  Q  /  W  /  E  /  R  / T/: /
  *        /-----/-----/-----/-----/-----/
- *       /  A  /  S  /  D  /  F  /  G  /
+ *       /  A  /  S  /  D  /  F  / G/" /
  *      /-----/-----/-----/-----/-----/
  *     /LSFT /  Z  /  X  /  C  / V/B /
  *    /-----/-----/-----/-----/-----/
  *   /HO/EN/Ctrl /Optio/ CMD /Space/
  *  -------------------------------
  */
-  [WASD_LAYER] = LAYOUT(        TD(TAB_1),   KC_2,          KC_3,    KC_4,   LT(1, KC_5),
-                                     KC_Q,   KC_W,          KC_E,    KC_R,   KC_T,
-                                     KC_A,   KC_S,          KC_D,    KC_F,   KC_G,
-                                  KC_LSFT,   KC_Z,          KC_X,    KC_C,   KC_V,
-                                  KC_HOME,   KC_LCTL,       KC_LOPT, KC_LCMD,KC_SPACE),
+  [WASD_LAYER] = LAYOUT( TD(TAB_1),   TD(F1_2),  TD(F2_3),  TD(F4_4), TD(F5_5),
+                              KC_Q,   KC_W,          KC_E,    KC_R,   TD(T_COLON),
+                              KC_A,   KC_S,          KC_D,    KC_F,   TD(G_QUOTA),
+                           KC_LSFT,   KC_Z,          KC_X,    KC_C,   TD(V_B),
+                         TD(HOME_END),KC_LCTL,       KC_LOPT, KC_LCMD,KC_SPACE),
 /* hold
- *            ___________________
- *           /CON_A/CON_D/SHIFT/
- *          /-----/-----/-----/
- *         /RGBTg/RGBM+/Brig+/
- *        /-----/-----/-----/
- *       / COPY/TD(1)/PASTE/
- *      -------------------
+ *            ______________________________
+ *           /CON_A/CON_D/     /SHIFT/     /
+ *          /-----/-----/-----/-----/-----/
+ *         /RGBTg/RGBM+/Brig+/RGSPI/     /
+ *        /-----/-----/-----/-----/-----/
+ *       /     /     /TD(1)/     /     /
+ *      /-----/-----/-----/-----/-----/
+ *     /     /     /     /     /     /
+ *    /-----/-----/-----/-----/-----/
+ *   / COPY/     /     /     /PASTE/
+ *  -------------------------------
  */
-  [FUNC_LAYER] = LAYOUT(CONDA_ACTIVATE,CONDA_DEACTIVATE, _______,  _______, KC_LSFT,
-                               RGB_TOG,         RGB_MOD, RGB_VAI,  RGB_SPI, _______,
-                              _______,          _______,TD(QUO_LAYER),_______, _______,
-                               _______,         _______,  _______,  _______, _______,
-                                  COPY,         _______,  _______,  _______, PASTE),
+  [FUNC_LAYER] = LAYOUT(CONDA_ACTIVATE,CONDA_DEACTIVATE, _______,      KC_LSFT, _______,
+                               RGB_TOG,         RGB_MOD, RGB_VAI,      RGB_SPI, _______,
+                               _______,         _______, TD(QUO_LAYER),_______, _______,
+                               _______,         _______, _______,      _______, _______,
+                                  COPY,         _______, _______,      _______, PASTE),
 
 /* double tap
  */
-  [VIM_LAYER] = LAYOUT(  _______,         _______,  _______,  _______, _______,
-                         _______,         _______,  _______,  _______, _______,
-                         _______,         _______,TD(QUO_LAYER),_______, _______,
-                         _______,         _______,  _______,  _______, _______,
-                         _______,         _______,  _______,  _______, _______),
+  [GAME_LAYER] = LAYOUT(  KC_TAB,       _______,  _______,  _______, TD(QUO_LAYER),
+                         _______,       _______,  KC_W,     _______, _______,
+                         _______,       KC_A,     KC_S,     KC_D,    _______,
+                         KC_LSFT,       _______,  _______,  _______, _______,
+                         _______,       _______,  _______,  _______, KC_SPACE),
 
 /* triple tap
  *            _______________________________
@@ -229,6 +260,8 @@ void keyboard_post_init_user(void) {
     debug_enable=true;
     debug_matrix=true;
     rgblight_enable_noeeprom();
+    rgblight_sethsv(128, 255,111 );
+    rgblight_set_speed(15);
 }
 
 // below is tap dance callback methods
@@ -280,7 +313,7 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
                 ;
             } else {
                 layer_off(FUNC_LAYER);
-                layer_off(VIM_LAYER);
+                layer_off(GAME_LAYER);
                 layer_off(MUSIC_LAYER);
                 layer_on(WASD_LAYER);
             }
@@ -289,20 +322,20 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
             if(layer_state_is(FUNC_LAYER)) {
                 ;
             } else {
-                layer_off(VIM_LAYER);
+                layer_off(GAME_LAYER);
                 layer_off(WASD_LAYER);
                 layer_off(MUSIC_LAYER);
                 layer_on(FUNC_LAYER);
             }
             break;
         case TD_DOUBLE_TAP:
-            if(layer_state_is(VIM_LAYER)) {
+            if(layer_state_is(GAME_LAYER)) {
                 ;
             } else {
                 layer_off(WASD_LAYER);
                 layer_off(FUNC_LAYER);
                 layer_off(MUSIC_LAYER);
-                layer_on(VIM_LAYER);
+                layer_on(GAME_LAYER);
             }
             break;
         case TD_TRIPLE_TAP:
@@ -311,7 +344,7 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
             } else {
                 layer_off(WASD_LAYER);
                 layer_off(FUNC_LAYER);
-                layer_off(VIM_LAYER);
+                layer_off(GAME_LAYER);
                 layer_on(MUSIC_LAYER);
             }
         default:
@@ -323,22 +356,61 @@ void ql_reset(tap_dance_state_t *state, void *user_data) {
     ql_tap_state.state = TD_NONE;
 }
 
-void j_finished(tap_dance_state_t *state, void *user_data) {
-    j_tap_state.state = cur_dance(state);
-    switch(j_tap_state.state) {
-        case TD_SINGLE_TAP: register_code(KC_J);break;
-        case TD_SINGLE_HOLD: register_code(KC_H); break;
-        case TD_DOUBLE_HOLD: register_code(KC_J);break;
+/*
+ * Tap = 5
+ * Hold = DEL
+ * Double Tap = F5
+ * Double Tap and Hold = COLON
+ * Triple Tap = FUNC LAYER
+ */
+void dl_finished(tap_dance_state_t *state, void *user_data) {
+    dl_tap_state.state = cur_dance(state);
+    switch (dl_tap_state.state) {
+        case TD_SINGLE_TAP: register_code(KC_5);break;
+        case TD_SINGLE_HOLD: register_code(KC_BSPC); break;
+        case TD_DOUBLE_TAP: register_code(KC_F5); break;
+        case TD_DOUBLE_HOLD: register_code(KC_LSFT);register_code(KC_SCLN);break;
+        case TD_TRIPLE_TAP:
+            if(layer_state_is(FUNC_LAYER)) {
+                ;
+            } else{
+                layer_off(MUSIC_LAYER);
+                layer_off(WASD_LAYER);
+                layer_off(GAME_LAYER);
+                layer_on(FUNC_LAYER);
+            }
+        default:
+            break;
+    }
+}
+
+void dl_reset(tap_dance_state_t *state, void *user_data) {
+    switch (dl_tap_state.state) {
+        case TD_SINGLE_TAP: unregister_code(KC_5); break;
+        case TD_SINGLE_HOLD: unregister_code(KC_BSPC);break;
+        case TD_DOUBLE_TAP: unregister_code(KC_F5);break;
+        case TD_DOUBLE_HOLD: unregister_code(KC_SCLN);unregister_code(KC_LSFT);break;
+        default: break;
+    }
+    dl_tap_state.state = TD_NONE;
+}
+
+void tap_hold_finished(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+    tap_hold->state = cur_dance(state);
+    switch(tap_hold->state) {
+        case TD_SINGLE_TAP: register_code(tap_hold->tap);break;
+        case TD_SINGLE_HOLD: register_code(tap_hold->hold); break;
         default: break;
     }
 }
 
-void j_reset(tap_dance_state_t *state, void *user_data) {
-    switch (j_tap_state.state) {
-        case TD_SINGLE_TAP: unregister_code(KC_J); break;
-        case TD_SINGLE_HOLD: unregister_code(KC_H);break;
-        case TD_DOUBLE_HOLD: unregister_code(KC_J);break;
+void tap_hold_reset(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+    switch (tap_hold->state) {
+        case TD_SINGLE_TAP: unregister_code(tap_hold->tap); break;
+        case TD_SINGLE_HOLD: unregister_code(tap_hold->hold);break;
         default: break;
     }
-    j_tap_state.state = TD_NONE;
+    tap_hold->state = TD_NONE;
 }
