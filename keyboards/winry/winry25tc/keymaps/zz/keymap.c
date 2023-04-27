@@ -84,6 +84,7 @@ typedef struct {
 typedef struct {
     uint16_t tap;
     uint16_t hold;
+    uint16_t held;
     td_state_t state;
 } tap_dance_tap_hold_t;
 
@@ -128,7 +129,7 @@ static td_tap_t dl_tap_state = {
 };
 
 enum {
-    TAB_1,
+    ESC_1,
     QUO_LAYER,
     V_B,
     F1_2,
@@ -136,25 +137,29 @@ enum {
     F4_4,
     F5_5,
     HOME_END,
-    T_COLON,
-    G_QUOTA,
+    T_COLON, // need improve
+    G_QUOTA, // need improve
+    TAB_Q,
+    A_CAP,
     SOME_OTHER_DANCE,
 };
 
-#define ACTION_TAP_DANCE_TAP_HOLD(tap, hold) \
-    { .fn = {NULL, tap_hold_finished, tap_hold_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, 0}), }
+#define ACTION_TAP_DANCE_TAP_HOLD(tap, hold, held) \
+    { .fn = {NULL, tap_hold_finished, tap_hold_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, held, 0}), }
 
 tap_dance_action_t tap_dance_actions[] = {
-    [TAB_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
+    [ESC_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
     [QUO_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
-    [V_B]       = ACTION_TAP_DANCE_TAP_HOLD(KC_B, KC_V),
-    [F1_2]      = ACTION_TAP_DANCE_TAP_HOLD(KC_2, KC_F1),
-    [F2_3]      = ACTION_TAP_DANCE_TAP_HOLD(KC_3, KC_F2),
-    [F4_4]      = ACTION_TAP_DANCE_TAP_HOLD(KC_4, KC_F4),
-    [HOME_END]  = ACTION_TAP_DANCE_TAP_HOLD(KC_HOME, KC_END),
-    [T_COLON]   = ACTION_TAP_DANCE_TAP_HOLD(KC_T, KC_SCLN),
-    [G_QUOTA]   = ACTION_TAP_DANCE_TAP_HOLD(KC_G, KC_QUOT),
     [F5_5]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dl_finished, dl_reset),
+    [V_B]       = ACTION_TAP_DANCE_TAP_HOLD(KC_B, KC_V, 0),
+    [F1_2]      = ACTION_TAP_DANCE_TAP_HOLD(KC_2, KC_F1, 0),
+    [F2_3]      = ACTION_TAP_DANCE_TAP_HOLD(KC_3, KC_F2, 0),
+    [F4_4]      = ACTION_TAP_DANCE_TAP_HOLD(KC_4, KC_F4, 0),
+    [HOME_END]  = ACTION_TAP_DANCE_TAP_HOLD(KC_HOME, KC_END, 0),
+    [T_COLON]   = ACTION_TAP_DANCE_TAP_HOLD(KC_T, KC_LSFT, KC_SCLN),
+    [G_QUOTA]   = ACTION_TAP_DANCE_TAP_HOLD(KC_G, KC_LSFT, KC_QUOT),
+    [TAB_Q]     = ACTION_TAP_DANCE_TAP_HOLD(KC_TAB, KC_Q, 0),
+    [A_CAP]     = ACTION_TAP_DANCE_TAP_HOLD(KC_A, KC_CAPS, 0),
 };
 
 // feature 3: key override
@@ -190,21 +195,21 @@ enum layer_names {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* tap
- *esc/gra/caps______________________________
- *   `------>/1/TAB/ F1_2/ F2_3/F4_4 /F5_5 /
+ *GRV/(       ______________________________     LOCK/)/LAYER
+ *   `------>/1/ESC/ F1_2/ F2_3/F4_4 /5/DEL/--------'
  *          /-----/-----/-----/-----/-----/
- *         /  Q  /  W  /  E  /  R  / T/: /
+ *         /TAB/Q/  W  /  E  /  R  / T/: /
  *        /-----/-----/-----/-----/-----/
- *       /  A  /  S  /  D  /  F  / G/" /
+ *       /A_CAP/  S  /  D  /  F  / G/" /
  *      /-----/-----/-----/-----/-----/
- *     /LSFT /  Z  /  X  /  C  / V/B /
+ *     / LSFT/  Z  /  X  /  C  / V/B /
  *    /-----/-----/-----/-----/-----/
- *   /HO/EN/Ctrl /Optio/ CMD /Space/
+ *   /HO/EN/Ctrl / Opt / CMD /Space/
  *  -------------------------------
  */
-  [WASD_LAYER] = LAYOUT( TD(TAB_1),   TD(F1_2),  TD(F2_3),  TD(F4_4), TD(F5_5),
-                              KC_Q,   KC_W,          KC_E,    KC_R,   TD(T_COLON),
-                              KC_A,   KC_S,          KC_D,    KC_F,   TD(G_QUOTA),
+  [WASD_LAYER] = LAYOUT( TD(ESC_1),   TD(F1_2),  TD(F2_3),  TD(F4_4), TD(F5_5),
+                         TD(TAB_Q),   KC_W,          KC_E,    KC_R,   TD(T_COLON),
+                         TD(A_CAP),   KC_S,          KC_D,    KC_F,   TD(G_QUOTA),
                            KC_LSFT,   KC_Z,          KC_X,    KC_C,   TD(V_B),
                          TD(HOME_END),KC_LCTL,       KC_LOPT, KC_LCMD,KC_SPACE),
 /* hold
@@ -275,24 +280,24 @@ void keyboard_post_init_user(void) {
 void x_finished(tap_dance_state_t *state, void *user_data) {
     x_tap_state.state = cur_dance(state);
     switch(x_tap_state.state) {
-        case TD_SINGLE_TAP: register_code(KC_TAB);break;
-        case TD_SINGLE_HOLD: register_code(KC_1); break;
-        case TD_DOUBLE_TAP: register_code(KC_ESC); break;
-        case TD_DOUBLE_HOLD: register_code(KC_GRAVE);break;
+        case TD_SINGLE_TAP: register_code(KC_ESC);break;
+        case TD_SINGLE_HOLD: register_code(KC_ESC); break;
+        case TD_DOUBLE_TAP: register_code(KC_1);break;
+        case TD_DOUBLE_HOLD: register_code(KC_1);break;
         case TD_DOUBLE_SINGLE_TAP: tap_code(KC_1);register_code(KC_1);break;
-        case TD_TRIPLE_TAP: register_code(KC_CAPS);break;
+        case TD_TRIPLE_TAP: register_code(KC_GRAVE);break;
         default: break;
     }
 }
 
 void x_reset(tap_dance_state_t *state, void *user_data) {
     switch (x_tap_state.state) {
-        case TD_SINGLE_TAP: unregister_code(KC_TAB); break;
-        case TD_SINGLE_HOLD: unregister_code(KC_1);break;
-        case TD_DOUBLE_TAP: unregister_code(KC_ESC);break;
-        case TD_DOUBLE_HOLD: unregister_code(KC_GRAVE);break;
+        case TD_SINGLE_TAP: unregister_code(KC_ESC); break;
+        case TD_SINGLE_HOLD: unregister_code(KC_ESC);break;
+        case TD_DOUBLE_TAP: unregister_code(KC_1);break;
+        case TD_DOUBLE_HOLD: unregister_code(KC_1);break;
         case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_1);break;
-        case TD_TRIPLE_TAP: unregister_code(KC_CAPS);break;
+        case TD_TRIPLE_TAP: unregister_code(KC_GRAVE);break;
         default: break;
     }
     x_tap_state.state = TD_NONE;
@@ -301,7 +306,7 @@ void x_reset(tap_dance_state_t *state, void *user_data) {
 /*
  * Tap = WASD LAYER
  * Hold = FUNC_LAYER
- * Double Tap = --- LAYER
+ * Double Tap = GAME LAYER
  * Double Tap and Hold =
  * Triple Tap = MUSIC LAYER
  */
@@ -359,7 +364,7 @@ void ql_reset(tap_dance_state_t *state, void *user_data) {
 /*
  * Tap = 5
  * Hold = DEL
- * Double Tap = F5
+ * Double Tap = LOCK
  * Double Tap and Hold = COLON
  * Triple Tap = FUNC LAYER
  */
@@ -368,8 +373,8 @@ void dl_finished(tap_dance_state_t *state, void *user_data) {
     switch (dl_tap_state.state) {
         case TD_SINGLE_TAP: register_code(KC_5);break;
         case TD_SINGLE_HOLD: register_code(KC_BSPC); break;
-        case TD_DOUBLE_TAP: register_code(KC_F5); break;
-        case TD_DOUBLE_HOLD: register_code(KC_LSFT);register_code(KC_SCLN);break;
+        case TD_DOUBLE_TAP: register_code(KC_LCMD);register_code(KC_LCTL);register_code(KC_Q);break;
+        case TD_DOUBLE_HOLD: register_code(KC_LSFT);register_code(KC_0);break;
         case TD_TRIPLE_TAP:
             if(layer_state_is(FUNC_LAYER)) {
                 ;
@@ -388,8 +393,8 @@ void dl_reset(tap_dance_state_t *state, void *user_data) {
     switch (dl_tap_state.state) {
         case TD_SINGLE_TAP: unregister_code(KC_5); break;
         case TD_SINGLE_HOLD: unregister_code(KC_BSPC);break;
-        case TD_DOUBLE_TAP: unregister_code(KC_F5);break;
-        case TD_DOUBLE_HOLD: unregister_code(KC_SCLN);unregister_code(KC_LSFT);break;
+        case TD_DOUBLE_TAP: unregister_code(KC_Q);unregister_code(KC_LCTL);unregister_code(KC_LCMD);break;
+        case TD_DOUBLE_HOLD: unregister_code(KC_0);unregister_code(KC_LSFT);break;
         default: break;
     }
     dl_tap_state.state = TD_NONE;
@@ -400,7 +405,11 @@ void tap_hold_finished(tap_dance_state_t *state, void *user_data) {
     tap_hold->state = cur_dance(state);
     switch(tap_hold->state) {
         case TD_SINGLE_TAP: register_code(tap_hold->tap);break;
-        case TD_SINGLE_HOLD: register_code(tap_hold->hold); break;
+        case TD_SINGLE_HOLD: {
+            register_code(tap_hold->hold);
+            if (tap_hold->held > 0) register_code(tap_hold->held);
+            break;
+        }
         default: break;
     }
 }
@@ -409,7 +418,11 @@ void tap_hold_reset(tap_dance_state_t *state, void *user_data) {
     tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
     switch (tap_hold->state) {
         case TD_SINGLE_TAP: unregister_code(tap_hold->tap); break;
-        case TD_SINGLE_HOLD: unregister_code(tap_hold->hold);break;
+        case TD_SINGLE_HOLD: {
+            if (tap_hold->held > 0) unregister_code(tap_hold->held);
+            unregister_code(tap_hold->hold);
+            break;
+        }
         default: break;
     }
     tap_hold->state = TD_NONE;

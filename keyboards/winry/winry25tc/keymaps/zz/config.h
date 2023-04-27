@@ -18,6 +18,7 @@
 
 // place overrides here
 
+#define TAPPING_TERM 150
 
 /* Add combos */
 //#define EXTRA_SHORT_COMBOS
