@@ -97,6 +97,8 @@ void dl_finished(tap_dance_state_t *state, void *user_data);
 void dl_reset(tap_dance_state_t *state, void *user_data);
 void tap_hold_finished(tap_dance_state_t *state, void *user_data);
 void tap_hold_reset(tap_dance_state_t *state, void *user_data);
+void tap_tap_finished(tap_dance_state_t *state, void *user_data);
+void tap_tap_reset(tap_dance_state_t *state, void *user_data);
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if(state->count == 1) {
@@ -147,6 +149,9 @@ enum {
 #define ACTION_TAP_DANCE_TAP_HOLD(tap, hold, held) \
     { .fn = {NULL, tap_hold_finished, tap_hold_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, held, 0}), }
 
+#define ACTION_TAP_DANCE_TAP_TAP(tap, hold, held) \
+    { .fn = {NULL, tap_tap_finished, tap_tap_reset}, .user_data = (void *)&((tap_dance_tap_hold_t){tap, hold, held, 0}), }
+
 tap_dance_action_t tap_dance_actions[] = {
     [ESC_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
     [QUO_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
@@ -159,7 +164,7 @@ tap_dance_action_t tap_dance_actions[] = {
     [T_COLON]   = ACTION_TAP_DANCE_TAP_HOLD(KC_T, KC_LSFT, KC_SCLN),
     [G_QUOTA]   = ACTION_TAP_DANCE_TAP_HOLD(KC_G, KC_LSFT, KC_QUOT),
     [TAB_Q]     = ACTION_TAP_DANCE_TAP_HOLD(KC_TAB, KC_Q, 0),
-    [A_CAP]     = ACTION_TAP_DANCE_TAP_HOLD(KC_A, KC_CAPS, 0),
+    [A_CAP]     = ACTION_TAP_DANCE_TAP_TAP(KC_A, KC_CAPS, 0),
 };
 
 // feature 3: key override
@@ -271,11 +276,11 @@ void keyboard_post_init_user(void) {
 
 // below is tap dance callback methods
 /*
- * Tap = Send Tab
- * Hold = Send 1
- * Double Tap = Send Escape
- * Double Tap and Hold = Send `
- * Triple Tap = Send KC_CAPS
+ * Tap = Send ESC
+ * Hold = Send ESC
+ * Double Tap = Send 1
+ * Double Tap and Hold = Send 1
+ * Triple Tap = Send KC_GRAVE
  */
 void x_finished(tap_dance_state_t *state, void *user_data) {
     x_tap_state.state = cur_dance(state);
@@ -419,6 +424,38 @@ void tap_hold_reset(tap_dance_state_t *state, void *user_data) {
     switch (tap_hold->state) {
         case TD_SINGLE_TAP: unregister_code(tap_hold->tap); break;
         case TD_SINGLE_HOLD: {
+            if (tap_hold->held > 0) unregister_code(tap_hold->held);
+            unregister_code(tap_hold->hold);
+            break;
+        }
+        default: break;
+    }
+    tap_hold->state = TD_NONE;
+}
+
+// tap_dance_tap_hold_t struct reuse maybe confusing, cause lazy,
+// all tap/hold/held just mean diff keycode
+void tap_tap_finished(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+    tap_hold->state = cur_dance(state);
+    switch(tap_hold->state) {
+        case TD_SINGLE_HOLD:
+        case TD_SINGLE_TAP: register_code(tap_hold->tap);break;
+        case TD_DOUBLE_TAP: {
+            register_code(tap_hold->hold);
+            if (tap_hold->held > 0) register_code(tap_hold->held);
+            break;
+        }
+        default: break;
+    }
+}
+
+void tap_tap_reset(tap_dance_state_t *state, void *user_data) {
+    tap_dance_tap_hold_t *tap_hold = (tap_dance_tap_hold_t *)user_data;
+    switch (tap_hold->state) {
+        case TD_SINGLE_HOLD:
+        case TD_SINGLE_TAP: unregister_code(tap_hold->tap); break;
+        case TD_DOUBLE_TAP: {
             if (tap_hold->held > 0) unregister_code(tap_hold->held);
             unregister_code(tap_hold->hold);
             break;
