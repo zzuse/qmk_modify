@@ -142,7 +142,7 @@ enum {
     //T_COLON, // too lag
     //G_QUOTA,
     TAB_Q,
-    A_CAP,
+    //A_CAP,
     SOME_OTHER_DANCE,
 };
 
@@ -164,7 +164,7 @@ tap_dance_action_t tap_dance_actions[] = {
     //[T_COLON]   = ACTION_TAP_DANCE_TAP_HOLD(KC_T, KC_LSFT, KC_SCLN),
     //[G_QUOTA]   = ACTION_TAP_DANCE_TAP_HOLD(KC_G, KC_LSFT, KC_QUOT),
     [TAB_Q]     = ACTION_TAP_DANCE_TAP_HOLD(KC_TAB, KC_Q, 0),
-    [A_CAP]     = ACTION_TAP_DANCE_TAP_TAP(KC_A, KC_CAPS, 0),
+    //[A_CAP]     = ACTION_TAP_DANCE_TAP_TAP(KC_A, KC_CAPS, 0),
 };
 
 // feature 3: key override
@@ -200,12 +200,12 @@ enum layer_names {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* tap
- *GRV/(       ______________________________     LOCK/)/LAYER
+ *CAPS        ______________________________     LOCK/LAYER
  *   `------>/1/ESC/ F1_2/ F2_3/F4_4 /5/DEL/--------'
  *          /-----/-----/-----/-----/-----/
  *         /TAB/Q/  W  /  E  /  R  /  T  /
  *        /-----/-----/-----/-----/-----/
- *       /A_CAP/  S  /  D  /  F  /  G  /
+ *       /  A  /  S  /  D  /  F  /  G  /
  *      /-----/-----/-----/-----/-----/
  *     / LSFT/  Z  /  X  /  C  / V/B /
  *    /-----/-----/-----/-----/-----/
@@ -214,7 +214,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
   [WASD_LAYER] = LAYOUT( TD(ESC_1),   TD(F1_2),  TD(F2_3),  TD(F4_4), TD(F5_5),
                          TD(TAB_Q),   KC_W,          KC_E,    KC_R,   KC_T,
-                         TD(A_CAP),   KC_S,          KC_D,    KC_F,   KC_G,
+                          KC_A,       KC_S,          KC_D,    KC_F,   KC_G,
                            KC_LSFT,   KC_Z,          KC_X,    KC_C,   TD(V_B),
                          TD(HOME_END),KC_LCTL,       KC_LOPT, KC_LCMD,KC_SPACE),
 /* hold
@@ -280,7 +280,7 @@ void keyboard_post_init_user(void) {
  * Hold = Send ESC
  * Double Tap = Send 1
  * Double Tap and Hold = Send 1
- * Triple Tap = Send KC_GRAVE
+ * Triple Tap = Send KC_CAPS
  */
 void x_finished(tap_dance_state_t *state, void *user_data) {
     x_tap_state.state = cur_dance(state);
@@ -290,7 +290,7 @@ void x_finished(tap_dance_state_t *state, void *user_data) {
         case TD_DOUBLE_TAP: register_code(KC_1);break;
         case TD_DOUBLE_HOLD: register_code(KC_1);break;
         case TD_DOUBLE_SINGLE_TAP: tap_code(KC_1);register_code(KC_1);break;
-        case TD_TRIPLE_TAP: register_code(KC_GRAVE);break;
+        case TD_TRIPLE_TAP: register_code(KC_CAPS);break;
         default: break;
     }
 }
@@ -302,7 +302,7 @@ void x_reset(tap_dance_state_t *state, void *user_data) {
         case TD_DOUBLE_TAP: unregister_code(KC_1);break;
         case TD_DOUBLE_HOLD: unregister_code(KC_1);break;
         case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_1);break;
-        case TD_TRIPLE_TAP: unregister_code(KC_GRAVE);break;
+        case TD_TRIPLE_TAP: unregister_code(KC_CAPS);break;
         default: break;
     }
     x_tap_state.state = TD_NONE;
