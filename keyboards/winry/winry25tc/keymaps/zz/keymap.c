@@ -133,7 +133,7 @@ static td_tap_t dl_tap_state = {
 enum {
     ESC_1,
     QUO_LAYER,
-    V_B,
+    //V_B,
     F1_2,
     F2_3,
     F4_4,
@@ -156,7 +156,7 @@ tap_dance_action_t tap_dance_actions[] = {
     [ESC_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
     [QUO_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
     [F5_5]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dl_finished, dl_reset),
-    [V_B]       = ACTION_TAP_DANCE_TAP_HOLD(KC_B, KC_V, 0),
+    //[V_B]       = ACTION_TAP_DANCE_TAP_HOLD(KC_B, KC_V, 0),
     [F1_2]      = ACTION_TAP_DANCE_TAP_HOLD(KC_2, KC_F1, 0),
     [F2_3]      = ACTION_TAP_DANCE_TAP_HOLD(KC_3, KC_F2, 0),
     [F4_4]      = ACTION_TAP_DANCE_TAP_HOLD(KC_4, KC_F4, 0),
@@ -168,11 +168,11 @@ tap_dance_action_t tap_dance_actions[] = {
 };
 
 // feature 3: key override
-//const key_override_t dot_key_override =
-//    ko_make_basic(MOD_MASK_SHIFT, KC_DOT, KC_QUES);
+//const key_override_t space_v_override =
+//    ko_make_basic(MOD_MASK_CTRL, KC_V, KC_B);
 //
 //const key_override_t** key_overrides = (const key_override_t*[]){
-//    &dot_key_override,
+//    &space_v_override,
 //    NULL
 //};
 
@@ -215,8 +215,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [WASD_LAYER] = LAYOUT( TD(ESC_1),   TD(F1_2),  TD(F2_3),  TD(F4_4), TD(F5_5),
                          TD(TAB_Q),   KC_W,          KC_E,    KC_R,   KC_T,
                           KC_A,       KC_S,          KC_D,    KC_F,   KC_G,
-                           KC_LSFT,   KC_Z,          KC_X,    KC_C,   TD(V_B),
-                         TD(HOME_END),KC_LCTL,       KC_LOPT, KC_LCMD,KC_SPACE),
+                           KC_LSFT,   KC_Z,          KC_X,    KC_C,   KC_V,
+                         TD(HOME_END),KC_LCTL,       KC_LOPT, LCMD_T(KC_B),KC_SPACE),
 /* hold
  *            ______________________________
  *           /CON_A/CON_D/     /SHIFT/     /
